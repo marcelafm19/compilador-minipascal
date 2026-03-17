@@ -122,7 +122,6 @@ public class App {
             }
         }
 
-        // Saída formatada exatamente como exigida nos exemplos do professor
         System.out.println("Caracteres: " + totalCaracteres);
         System.out.println("Frequente: " + letraMaisFrequente);
         System.out.println("Palavras: " + totalPalavras);
