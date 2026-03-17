@@ -1,0 +1,15 @@
+image: maven:3.9.6-eclipse-temurin-21
+
+stages:
+  - build
+  - test
+
+build_job:
+  stage: build
+  script:
+    - mvn compile
+
+test_job:
+  stage: test
+  script:
+    - mvn test
