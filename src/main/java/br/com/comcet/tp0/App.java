@@ -26,7 +26,7 @@ public class App {
         // 2. Fallback: Entrada Interativa (Scanner)
         else {
             Scanner keyboard = new Scanner(System.in);
-            System.out.print("Digite o texto ou o caminho de um arquivo .txt: ");
+            System.out.print("\nDigite o texto ou o caminho de um arquivo .txt: ");
             input = keyboard.nextLine();
             if (input.toLowerCase().endsWith(".txt") && new File(input).exists()) {
                 isFilePath = true;
@@ -52,7 +52,7 @@ public class App {
     public static void exibirEstatisticas(String text) {
         // Validação inicial cobrada nos testes (Texto vazio)
         if (text == null || text.trim().isEmpty()) {
-            System.out.println("Texto vazio.");
+            System.out.println("\nTexto vazio.");
             return;
         }
 
@@ -72,7 +72,7 @@ public class App {
         int totalPalavras = palavras.size();
 
         if (totalPalavras == 0) {
-            System.out.println("Texto vazio.");
+            System.out.println("\nTexto vazio.");
             return;
         }
 
@@ -122,9 +122,9 @@ public class App {
             }
         }
 
-        System.out.println("Caracteres: " + totalCaracteres);
-        System.out.println("Frequente: " + letraMaisFrequente);
-        System.out.println("Palavras: " + totalPalavras);
-        System.out.println("Frequente: " + palavraMaisFrequente);
+        System.out.println("\nCaracteres: " + totalCaracteres);
+        System.out.println("\nFrequente: " + letraMaisFrequente);
+        System.out.println("\nPalavras: " + totalPalavras);
+        System.out.println("\nFrequente: " + palavraMaisFrequente + "\n");
     }
 }
