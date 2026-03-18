@@ -7,7 +7,10 @@ public class BlockCommand extends Command {
     public List<Command> commands = new ArrayList<>();
 
     @Override
-    public String toString() {
-        return commands.toString();
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("BlockCommand\n");
+        for (Command cmd : commands) {
+            cmd.printTree(sb, level + 1);
+        }
     }
 }

@@ -10,7 +10,9 @@ public class WhileCommand extends Command {
     }
 
     @Override
-    public String toString() {
-        return "while (" + condition.toString() + ") do " + body.toString();
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("WhileCommand\n");
+        condition.printTree(sb, level + 1);
+        body.printTree(sb, level + 1);
     }
 }

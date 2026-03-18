@@ -12,7 +12,9 @@ public class BinaryExpression extends Expression {
     }
 
     @Override
-    public String toString() {
-        return "(" + left + " " + operator + " " + right + ")";
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("BinaryExpression ").append(operator).append("\n");
+        left.printTree(sb, level + 1);
+        right.printTree(sb, level + 1);
     }
 }

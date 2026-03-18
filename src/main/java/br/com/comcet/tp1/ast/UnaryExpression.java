@@ -10,7 +10,8 @@ public class UnaryExpression extends Expression {
     }
 
     @Override
-    public String toString() {
-        return operator + expr;
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("UnaryExpression ").append(operator).append("\n");
+        expr.printTree(sb, level + 1);
     }
 }

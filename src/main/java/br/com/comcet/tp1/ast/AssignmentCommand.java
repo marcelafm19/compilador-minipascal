@@ -10,7 +10,9 @@ public class AssignmentCommand extends Command {
     }
 
     @Override
-    public String toString() {
-        return id + " := " + expr;
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("AssignmentCommand\n");
+        id.printTree(sb, level + 1);
+        expr.printTree(sb, level + 1);
     }
 }

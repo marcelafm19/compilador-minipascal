@@ -8,7 +8,7 @@ public class Literal extends Expression {
     }
 
     @Override
-    public String toString() {
-        return value.toString();
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("Literal(").append(value).append(")\n");
     }
 }

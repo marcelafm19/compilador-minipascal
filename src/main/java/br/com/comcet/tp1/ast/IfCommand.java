@@ -12,11 +12,12 @@ public class IfCommand extends Command {
     }
 
     @Override
-    public String toString() {
-        String res = "if (" + condition.toString() + ") then " + thenBranch.toString();
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("IfCommand\n");
+        condition.printTree(sb, level + 1);
+        thenBranch.printTree(sb, level + 1);
         if (elseBranch != null) {
-            res += " else " + elseBranch.toString();
+            elseBranch.printTree(sb, level + 1);
         }
-        return res;
     }
 }

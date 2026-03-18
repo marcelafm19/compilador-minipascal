@@ -8,7 +8,7 @@ public class Identifier extends Expression {
     }
 
     @Override
-    public String toString() {
-        return name;
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("Identifier(").append(name).append(")\n");
     }
 }

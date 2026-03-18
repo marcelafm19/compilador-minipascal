@@ -7,11 +7,10 @@ public class Program extends AstNode {
     public List<Command> commands = new ArrayList<>();
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("Program\n");
         for (Command cmd : commands) {
-            sb.append(cmd.toString()).append("\n");
+            cmd.printTree(sb, level + 1);
         }
-        return sb.toString();
     }
 }

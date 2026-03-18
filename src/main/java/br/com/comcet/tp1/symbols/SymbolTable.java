@@ -8,7 +8,7 @@ public class SymbolTable {
 
     public void add(String name, Symbol symbol) {
         if (symbols.containsKey(name)) {
-            throw new RuntimeException("Erro: Variável '" + name + "' já declarada.");
+            throw new IllegalArgumentException("Erro: Variável '" + name + "' já declarada.");
         }
         symbols.put(name, symbol);
     }

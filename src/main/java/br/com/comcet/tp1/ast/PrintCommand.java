@@ -8,7 +8,8 @@ public class PrintCommand extends Command {
     }
 
     @Override
-    public String toString() {
-        return "print(" + expression + ")";
+    protected void printTree(StringBuilder sb, int level) {
+        sb.append(indent(level)).append("PrintCommand\n");
+        expression.printTree(sb, level + 1);
     }
 }
