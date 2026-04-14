@@ -3,6 +3,8 @@ package br.com.comcet.tp1.ast;
 public abstract class AstNode {
     public int line;
     public int column;
+    
+    public static boolean isEtapa3 = false;
 
     public final String printTree() {
         StringBuilder sb = new StringBuilder();

@@ -13,17 +13,16 @@ public class Scanner implements IScanner {
     private int line;
     private int column;
 
-    // Mapeamento de Palavras Reservadas (conforme o seu TokenType atual)
     private static final Map<String, TokenType> keywords = new HashMap<>();
     static {
         keywords.put("var", TokenType.KEYWORD);
         keywords.put("integer", TokenType.KEYWORD);
-        keywords.put("if", TokenType.KEYWORD);
-        keywords.put("then", TokenType.KEYWORD);
-        keywords.put("else", TokenType.KEYWORD);
-        keywords.put("while", TokenType.KEYWORD);
-        keywords.put("do", TokenType.KEYWORD);
-        keywords.put("print", TokenType.KEYWORD);
+        keywords.put("if", TokenType.IF); // Atualizado para usar os tipos corretos do Enum
+        keywords.put("then", TokenType.THEN);
+        keywords.put("else", TokenType.ELSE);
+        keywords.put("while", TokenType.WHILE);
+        keywords.put("do", TokenType.DO);
+        keywords.put("print", TokenType.PRINT);
     }
 
     public Scanner(String source) {
@@ -33,14 +32,12 @@ public class Scanner implements IScanner {
         this.column = 1;
     }
 
-    // Retorna o caractere atual sem consumi-lo
     private char peek() {
         if (pos >= source.length())
             return '\0';
         return source.charAt(pos);
     }
 
-    // Consome o caractere atual e avança a posição (atualizando linha/coluna)
     private char advance() {
         char c = source.charAt(pos++);
         if (c == '\n') {
@@ -52,23 +49,19 @@ public class Scanner implements IScanner {
         return c;
     }
 
-    // Pula espaços em branco, quebras de linha, tabulações E comentários
     private void skipWhitespaceAndComments() {
         while (true) {
             char c = peek();
             if (Character.isWhitespace(c)) {
                 advance();
             } else if (c == '{') {
-                // Ignora tudo até encontrar o fechamento do comentário '}'
-                advance(); // Consome o '{'
+                advance();
                 while (peek() != '}' && peek() != '\0') {
                     advance();
                 }
-                if (peek() == '}') {
-                    advance(); // Consome o '}'
-                }
+                if (peek() == '}') advance();
             } else {
-                break; // Não é espaço nem comentário, sai do loop
+                break;
             }
         }
     }
@@ -76,14 +69,16 @@ public class Scanner implements IScanner {
     @Override
     public Token nextToken() {
         skipWhitespaceAndComments();
+        
+        int startLine = line;
+        int startCol = column;
 
         if (pos >= source.length()) {
-            return new Token(TokenType.EOF, "");
+            return new Token(TokenType.EOF, "", startLine, startCol);
         }
 
         char c = peek();
 
-        // 1. Identificadores e Palavras Reservadas
         if (Character.isLetter(c)) {
             StringBuilder sb = new StringBuilder();
             while (Character.isLetterOrDigit(peek())) {
@@ -91,51 +86,37 @@ public class Scanner implements IScanner {
             }
             String text = sb.toString();
             TokenType type = keywords.getOrDefault(text, TokenType.IDENTIFIER);
-            return new Token(type, text);
+            return new Token(type, text, startLine, startCol);
         }
 
-        // 2. Números Inteiros
         if (Character.isDigit(c)) {
             StringBuilder sb = new StringBuilder();
             while (Character.isDigit(peek())) {
                 sb.append(advance());
             }
-            return new Token(TokenType.NUMBER, sb.toString());
+            return new Token(TokenType.NUMBER, sb.toString(), startLine, startCol);
         }
 
-        // 3. Operadores e Pontuações
         c = advance();
         switch (c) {
-            case '+':
-                return new Token(TokenType.OPERATOR, "+");
-            case '-':
-                return new Token(TokenType.OPERATOR, "-");
-            case '*':
-                return new Token(TokenType.OPERATOR, "*");
-            case '/':
-                return new Token(TokenType.OPERATOR, "/");
-            case '(':
-                return new Token(TokenType.DELIMITER, "(");
-            case ')':
-                return new Token(TokenType.DELIMITER, ")");
-            case '{':
-                return new Token(TokenType.DELIMITER, "{");
-            case '}':
-                return new Token(TokenType.DELIMITER, "}");
+            case '+': return new Token(TokenType.PLUS, "+", startLine, startCol);
+            case '-': return new Token(TokenType.MINUS, "-", startLine, startCol);
+            case '*': return new Token(TokenType.TIMES, "*", startLine, startCol);
+            case '/': return new Token(TokenType.DIV, "/", startLine, startCol);
+            case '(': return new Token(TokenType.LPAREN, "(", startLine, startCol);
+            case ')': return new Token(TokenType.RPAREN, ")", startLine, startCol);
+            case '{': return new Token(TokenType.LBRACE, "{", startLine, startCol);
+            case '}': return new Token(TokenType.RBRACE, "}", startLine, startCol);
             case ':':
-                // Lookahead para identificar atribuição ":="
                 if (peek() == '=') {
-                    advance(); // Consome o '='
-                    return new Token(TokenType.OPERATOR, ":="); // Era ASSIGN
+                    advance();
+                    return new Token(TokenType.ASSIGN, ":=", startLine, startCol);
                 }
-                // Se não for '=', é um dois-pontos (delimitador)
-                return new Token(TokenType.DELIMITER, ":"); // Era COLON
-            case '=':
-                return new Token(TokenType.OPERATOR, "=");
-            case ';':
-                return new Token(TokenType.DELIMITER, ";"); // Era SEMICOLON
+                return new Token(TokenType.COLON, ":", startLine, startCol);
+            case '=': return new Token(TokenType.OPERATOR, "=", startLine, startCol);
+            case ';': return new Token(TokenType.SEMICOLON, ";", startLine, startCol);
             default:
-                throw new LexicalException("Caractere inválido", c, line, column - 1);
+                throw new LexicalException("Caractere inválido", c, startLine, startCol);
         }
     }
 }

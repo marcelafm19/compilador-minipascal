@@ -13,7 +13,11 @@ public class BinaryExpression extends Expression {
 
     @Override
     protected void printTree(StringBuilder sb, int level) {
-        sb.append(indent(level)).append("BinaryExpression ").append(operator).append("\n");
+        if (AstNode.isEtapa3) {
+            sb.append(indent(level)).append("BinaryExpression (").append(operator).append(")\n");
+        } else {
+            sb.append(indent(level)).append("BinaryExpression ").append(operator).append("\n");
+        }
         left.printTree(sb, level + 1);
         right.printTree(sb, level + 1);
     }

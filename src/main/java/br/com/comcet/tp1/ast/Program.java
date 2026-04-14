@@ -9,8 +9,9 @@ public class Program extends AstNode {
     @Override
     protected void printTree(StringBuilder sb, int level) {
         sb.append(indent(level)).append("Program\n");
+        sb.append(indent(level + 1)).append("CommandList\n");
         for (Command cmd : commands) {
-            cmd.printTree(sb, level + 1);
+            cmd.printTree(sb, level + 2);
         }
     }
 }

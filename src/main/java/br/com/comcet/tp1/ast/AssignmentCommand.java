@@ -11,8 +11,13 @@ public class AssignmentCommand extends Command {
 
     @Override
     protected void printTree(StringBuilder sb, int level) {
-        sb.append(indent(level)).append("AssignmentCommand\n");
-        id.printTree(sb, level + 1);
-        expr.printTree(sb, level + 1);
+        if (AstNode.isEtapa3) {
+            sb.append(indent(level)).append("AssignmentCommand (Target: ").append(id.name).append(")\n");
+            expr.printTree(sb, level + 1);
+        } else {
+            sb.append(indent(level)).append("AssignmentCommand\n");
+            id.printTree(sb, level + 1);
+            expr.printTree(sb, level + 1);
+        }
     }
 }

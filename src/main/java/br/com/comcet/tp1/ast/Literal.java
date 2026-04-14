@@ -9,6 +9,10 @@ public class Literal extends Expression {
 
     @Override
     protected void printTree(StringBuilder sb, int level) {
-        sb.append(indent(level)).append("Literal(").append(value).append(")\n");
+        if (AstNode.isEtapa3) {
+            sb.append(indent(level)).append("Literal (").append(value).append(")\n");
+        } else {
+            sb.append(indent(level)).append("Literal(").append(value).append(")\n");
+        }
     }
 }

@@ -9,7 +9,6 @@ import java.nio.file.Path;
 
 public class MainScanner {
     public static void main(String[] args) {
-        // Altere o caminho para onde estiver o seu arquivo de teste
         Path caminhoArquivo = Path.of("teste.pas"); 
         
         try {
