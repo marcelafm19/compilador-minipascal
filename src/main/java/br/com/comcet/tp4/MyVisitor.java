@@ -1,5 +1,8 @@
 package br.com.comcet.tp4;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import br.com.comcet.tp1.ast.*;
 import br.com.comcet.tp4.parser.MiniPascalBaseVisitor;
 import br.com.comcet.tp4.parser.MiniPascalParser;
@@ -9,9 +12,39 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
     @Override
     public AstNode visitProgram(MiniPascalParser.ProgramContext ctx) {
         Program program = new Program();
+
+        if (ctx.varDecl() != null) {
+            program.variables = (VarDeclList) visit(ctx.varDecl());
+        }
+
         BlockCommand block = (BlockCommand) visit(ctx.block());
         program.commands.addAll(block.commands);
         return program;
+    }
+
+    @Override
+    public AstNode visitVarDecl(MiniPascalParser.VarDeclContext ctx) {
+        VarDeclList list = new VarDeclList();
+        List<String> currentIds = new ArrayList<>();
+
+        for (int i = 1; i < ctx.getChildCount(); i++) {
+            String text = ctx.getChild(i).getText();
+
+            if (text.equals(",") || text.equals(":") || text.equals(";")) {
+                continue;
+            }
+
+            if (text.equals("integer") || text.equals("boolean") || text.equals("string")) {
+                for (String id : currentIds) {
+                    list.declarations.add(new VarDecl(id, text));
+                }
+                currentIds.clear();
+            } else {
+                currentIds.add(text);
+            }
+        }
+
+        return list;
     }
 
     @Override
