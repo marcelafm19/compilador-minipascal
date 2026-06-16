@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class Program extends AstNode {
     public VarDeclList variables = null; 
+    public List<FunctionDecl> functions = new ArrayList<>();
     public List<Command> commands = new ArrayList<>();
 
     @Override
@@ -13,6 +14,10 @@ public class Program extends AstNode {
         
         if (variables != null) {
             variables.printTree(sb, level + 1);
+        }
+        
+        for (FunctionDecl func : functions) {
+            func.printTree(sb, level + 1);
         }
         
         sb.append(indent(level + 1)).append("CommandList\n");

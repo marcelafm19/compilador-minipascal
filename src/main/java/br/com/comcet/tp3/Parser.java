@@ -40,23 +40,25 @@ public class Parser {
             } else if (currentToken.type() == TokenType.PRINT) {
                 return parsePrint();
             }
-            throw new RuntimeException("Comando não reconhecido: " + currentToken.text() + " na linha " + currentToken.line());
-            
+            throw new RuntimeException(
+                    "Comando não reconhecido: " + currentToken.text() + " na linha " + currentToken.line());
+
         } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             synchronize();
-            return null; 
+            return null;
         }
     }
 
     private Command parseBlock() {
         int line = currentToken.line();
         int col = currentToken.column();
-        
+
         match(TokenType.LBRACE);
         BlockCommand block = new BlockCommand();
-        block.line = line; block.column = col;
-        
+        block.line = line;
+        block.column = col;
+
         while (currentToken.type() != TokenType.RBRACE && currentToken.type() != TokenType.EOF) {
             Command cmd = parseCommand();
             if (cmd != null) {
@@ -70,47 +72,50 @@ public class Parser {
     private Command parseIf() {
         int line = currentToken.line();
         int col = currentToken.column();
-        
+
         match(TokenType.IF);
         Expression condition = parseExpression();
         match(TokenType.THEN);
         Command thenBranch = parseCommand();
-        
+
         Command elseBranch = null;
         if (currentToken.type() == TokenType.ELSE) {
             match(TokenType.ELSE);
             elseBranch = parseCommand();
         }
-        
+
         IfCommand cmd = new IfCommand(condition, thenBranch, elseBranch);
-        cmd.line = line; cmd.column = col;
+        cmd.line = line;
+        cmd.column = col;
         return cmd;
     }
 
     private Command parseWhile() {
         int line = currentToken.line();
         int col = currentToken.column();
-        
+
         match(TokenType.WHILE);
         Expression condition = parseExpression();
         match(TokenType.DO);
         Command body = parseCommand();
-        
+
         WhileCommand cmd = new WhileCommand(condition, body);
-        cmd.line = line; cmd.column = col;
+        cmd.line = line;
+        cmd.column = col;
         return cmd;
     }
-    
+
     private Command parsePrint() {
         int line = currentToken.line();
         int col = currentToken.column();
-        
+
         match(TokenType.PRINT);
         Expression expr = parseExpression();
         match(TokenType.SEMICOLON);
-        
+
         PrintCommand cmd = new PrintCommand(expr);
-        cmd.line = line; cmd.column = col;
+        cmd.line = line;
+        cmd.column = col;
         return cmd;
     }
 
@@ -128,13 +133,15 @@ public class Parser {
         }
 
         Expression expr = parseExpression();
-        match(TokenType.SEMICOLON); 
+        match(TokenType.SEMICOLON);
 
         Identifier id = new Identifier(idName);
-        id.line = line; id.column = col;
+        id.line = line;
+        id.column = col;
 
         AssignmentCommand cmd = new AssignmentCommand(id, expr);
-        cmd.line = line; cmd.column = col;
+        cmd.line = line;
+        cmd.column = col;
         return cmd;
     }
 
@@ -147,9 +154,10 @@ public class Parser {
             String op = currentToken.text();
             advance();
             Expression right = parseTerm();
-            
+
             BinaryExpression bin = new BinaryExpression(left, right, op);
-            bin.line = line; bin.column = col;
+            bin.line = line;
+            bin.column = col;
             left = bin;
         }
         return left;
@@ -164,9 +172,10 @@ public class Parser {
             String op = currentToken.text();
             advance();
             Expression right = parseFactor();
-            
+
             BinaryExpression bin = new BinaryExpression(left, right, op);
-            bin.line = line; bin.column = col;
+            bin.line = line;
+            bin.column = col;
             left = bin;
         }
         return left;
@@ -176,27 +185,30 @@ public class Parser {
         int line = currentToken.line();
         int col = currentToken.column();
 
-        if (currentToken.type() == TokenType.NUMBER) {
+        if (currentToken.type() == TokenType.LITERAL_INT) { 
             String val = currentToken.text();
-            match(TokenType.NUMBER);
+            match(TokenType.LITERAL_INT); 
             Literal literal = new Literal(Integer.parseInt(val));
-            literal.line = line; literal.column = col;
+            literal.line = line;
+            literal.column = col;
             return literal;
 
         } else if (currentToken.type() == TokenType.IDENTIFIER) {
             String name = currentToken.text();
             match(TokenType.IDENTIFIER);
             Identifier id = new Identifier(name);
-            id.line = line; id.column = col;
+            id.line = line;
+            id.column = col;
             return id;
 
         } else if (currentToken.type() == TokenType.LPAREN) {
-            advance(); 
+            advance();
             Expression expr = parseExpression();
             match(TokenType.RPAREN);
             return expr;
         }
-        throw new RuntimeException("Erro: Expressão inválida perto de '" + currentToken.text() + "' na linha " + currentToken.line());
+        throw new RuntimeException(
+                "Erro: Expressão inválida perto de '" + currentToken.text() + "' na linha " + currentToken.line());
     }
 
     private void synchronize() {

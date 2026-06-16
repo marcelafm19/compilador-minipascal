@@ -17,9 +17,55 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
             program.variables = (VarDeclList) visit(ctx.varDecl());
         }
 
+        // Lê todas as funções e adiciona na lista do Program
+        for (MiniPascalParser.FunctionDeclContext fCtx : ctx.functionDecl()) {
+            program.functions.add((FunctionDecl) visit(fCtx));
+        }
+
         BlockCommand block = (BlockCommand) visit(ctx.block());
         program.commands.addAll(block.commands);
         return program;
+    }
+
+    @Override
+    public AstNode visitFunctionDecl(MiniPascalParser.FunctionDeclContext ctx) {
+        String name = ctx.ID().getText();
+        String returnType = ctx.type().getText();
+        FunctionDecl func = new FunctionDecl(name, returnType);
+
+        // 1. Processa a lista de parâmetros
+        if (ctx.paramList() != null) {
+            MiniPascalParser.ParamListContext pCtx = ctx.paramList();
+            for (int i = 0; i < pCtx.ID().size(); i++) {
+                String paramName = pCtx.ID(i).getText();
+                String paramType = pCtx.type(i).getText();
+                func.parameters.add(new VarDecl(paramName, paramType));
+            }
+        }
+
+        // 2. Processa as variáveis locais da função
+        if (ctx.varDecl() != null) {
+            func.variables = (VarDeclList) visit(ctx.varDecl());
+        }
+
+        // 3. Processa o corpo
+        func.body = (BlockCommand) visit(ctx.block());
+
+        return func;
+    }
+
+    @Override
+    public AstNode visitFunctionCallExpr(MiniPascalParser.FunctionCallExprContext ctx) {
+        String name = ctx.ID().getText();
+        FunctionCall call = new FunctionCall(name);
+
+        // Processa os argumentos passados
+        if (ctx.argList() != null) {
+            for (MiniPascalParser.ExpressionContext eCtx : ctx.argList().expression()) {
+                call.arguments.add((Expression) visit(eCtx));
+            }
+        }
+        return call;
     }
 
     @Override
@@ -109,5 +155,24 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
     @Override
     public AstNode visitParenExpr(MiniPascalParser.ParenExprContext ctx) {
         return visit(ctx.expression());
+    }
+
+    @Override
+    public AstNode visitStringExpr(MiniPascalParser.StringExprContext ctx) {
+        return new Literal(ctx.STRING_LITERAL().getText());
+    }
+
+    @Override
+    public AstNode visitBooleanExpr(MiniPascalParser.BooleanExprContext ctx) {
+        boolean value = ctx.TRUE() != null;
+        return new Literal(value);
+    }
+
+    @Override
+    public AstNode visitRelationalExpr(MiniPascalParser.RelationalExprContext ctx) {
+        Expression left = (Expression) visit(ctx.expression(0));
+        Expression right = (Expression) visit(ctx.expression(1));
+        String op = ctx.op.getText();
+        return new BinaryExpression(left, right, op);
     }
 }

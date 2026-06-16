@@ -17,7 +17,7 @@ public class Scanner implements IScanner {
     static {
         keywords.put("var", TokenType.KEYWORD);
         keywords.put("integer", TokenType.KEYWORD);
-        keywords.put("if", TokenType.IF); // Atualizado para usar os tipos corretos do Enum
+        keywords.put("if", TokenType.IF); 
         keywords.put("then", TokenType.THEN);
         keywords.put("else", TokenType.ELSE);
         keywords.put("while", TokenType.WHILE);
@@ -94,7 +94,7 @@ public class Scanner implements IScanner {
             while (Character.isDigit(peek())) {
                 sb.append(advance());
             }
-            return new Token(TokenType.NUMBER, sb.toString(), startLine, startCol);
+            return new Token(TokenType.LITERAL_INT, sb.toString(), startLine, startCol);
         }
 
         c = advance();
