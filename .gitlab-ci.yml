@@ -6,6 +6,7 @@ stages:
 
 auditoria_de_prazos:
   stage: relatorios
+  # É necessário instalar o git caso a imagem maven pura não tenha
   before_script:
     - apt-get update -y && apt-get install git -y || true
   script:
