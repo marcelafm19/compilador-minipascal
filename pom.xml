@@ -34,6 +34,12 @@
       <artifactId>antlr4-runtime</artifactId>
       <version>4.13.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>9.6</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -56,6 +62,27 @@
             <configuration>
               <visitor>true</visitor>
               <sourceDirectory>${project.basedir}/src/main/antlr4</sourceDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>br.com.comcet.tp7.MainCompiler</mainClass>
+                </transformer>
+              </transformers>
             </configuration>
           </execution>
         </executions>
