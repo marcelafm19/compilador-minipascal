@@ -8,7 +8,7 @@ public enum TokenType {
     // Operadores e pontuação
     ASSIGN, PLUS, MINUS, TIMES, DIV, 
     LPAREN, RPAREN, LBRACE, RBRACE,
-    COLON, SEMICOLON, // <-- Adicionados aqui!
+    COLON, SEMICOLON, 
     
     // Dinâmicos
     IDENTIFIER, LITERAL_INT, LITERAL_BOOL, LITERAL_STR,

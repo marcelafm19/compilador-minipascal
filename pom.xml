@@ -80,7 +80,7 @@
             <configuration>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>br.com.comcet.tp7.MainCompiler</mainClass>
+                  <mainClass>br.com.comcet.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>

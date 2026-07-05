@@ -96,14 +96,18 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
     @Override
     public AstNode visitBlock(MiniPascalParser.BlockContext ctx) {
         BlockCommand block = new BlockCommand();
-        for (MiniPascalParser.CommandContext cmdCtx : ctx.command()) {
-            Command cmd = (Command) visit(cmdCtx);
-            if (cmd != null) {
-                block.commands.add(cmd);
+        if (ctx.commandList() != null) {
+            for (MiniPascalParser.CommandContext cmdCtx : ctx.commandList().command()) {
+                Command cmd = (Command) visit(cmdCtx);
+                if (cmd != null) {
+                    block.commands.add(cmd);
+                }
             }
         }
         return block;
     }
+
+    // --- COMANDOS ---
 
     @Override
     public AstNode visitAssignment(MiniPascalParser.AssignmentContext ctx) {
@@ -128,17 +132,76 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
     }
 
     @Override
-    public AstNode visitPrintCmd(MiniPascalParser.PrintCmdContext ctx) {
+    public AstNode visitRepeatCmd(MiniPascalParser.RepeatCmdContext ctx) {
+        BlockCommand body = new BlockCommand();
+        for (MiniPascalParser.CommandContext cmdCtx : ctx.commandList().command()) {
+            Command cmd = (Command) visit(cmdCtx);
+            if (cmd != null) {
+                body.commands.add(cmd);
+            }
+        }
+        Expression condition = (Expression) visit(ctx.expression());
+        return new RepeatCommand(body, condition);
+    }
+
+    @Override
+    public AstNode visitWritelnCmd(MiniPascalParser.WritelnCmdContext ctx) {
         Expression expr = (Expression) visit(ctx.expression());
         return new PrintCommand(expr);
     }
 
     @Override
-    public AstNode visitBinaryExpr(MiniPascalParser.BinaryExprContext ctx) {
+    public AstNode visitReadlnCmd(MiniPascalParser.ReadlnCmdContext ctx) {
+        Identifier id = new Identifier(ctx.ID().getText());
+        return new ReadCommand(id);
+    }
+
+    @Override
+    public AstNode visitBlockCmd(MiniPascalParser.BlockCmdContext ctx) {
+        return visit(ctx.block());
+    }
+
+    // --- EXPRESSÕES ---
+
+    @Override
+    public AstNode visitMultiplicativeExpr(MiniPascalParser.MultiplicativeExprContext ctx) {
         Expression left = (Expression) visit(ctx.expression(0));
         Expression right = (Expression) visit(ctx.expression(1));
-        String op = ctx.op.getText();
-        return new BinaryExpression(left, right, op);
+        return new BinaryExpression(left, right, ctx.op.getText());
+    }
+
+    @Override
+    public AstNode visitAdditiveExpr(MiniPascalParser.AdditiveExprContext ctx) {
+        Expression left = (Expression) visit(ctx.expression(0));
+        Expression right = (Expression) visit(ctx.expression(1));
+        return new BinaryExpression(left, right, ctx.op.getText());
+    }
+
+    @Override
+    public AstNode visitRelationalExpr(MiniPascalParser.RelationalExprContext ctx) {
+        Expression left = (Expression) visit(ctx.expression(0));
+        Expression right = (Expression) visit(ctx.expression(1));
+        return new BinaryExpression(left, right, ctx.op.getText());
+    }
+
+    @Override
+    public AstNode visitAndExpr(MiniPascalParser.AndExprContext ctx) {
+        Expression left = (Expression) visit(ctx.expression(0));
+        Expression right = (Expression) visit(ctx.expression(1));
+        return new BinaryExpression(left, right, "and");
+    }
+
+    @Override
+    public AstNode visitOrExpr(MiniPascalParser.OrExprContext ctx) {
+        Expression left = (Expression) visit(ctx.expression(0));
+        Expression right = (Expression) visit(ctx.expression(1));
+        return new BinaryExpression(left, right, "or");
+    }
+
+    @Override
+    public AstNode visitNotExpr(MiniPascalParser.NotExprContext ctx) {
+        Expression expr = (Expression) visit(ctx.expression());
+        return new UnaryExpression(expr, "not");
     }
 
     @Override
@@ -166,13 +229,5 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
     public AstNode visitBooleanExpr(MiniPascalParser.BooleanExprContext ctx) {
         boolean value = ctx.TRUE() != null;
         return new Literal(value);
-    }
-
-    @Override
-    public AstNode visitRelationalExpr(MiniPascalParser.RelationalExprContext ctx) {
-        Expression left = (Expression) visit(ctx.expression(0));
-        Expression right = (Expression) visit(ctx.expression(1));
-        String op = ctx.op.getText();
-        return new BinaryExpression(left, right, op);
     }
 }

@@ -40,7 +40,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>br.com.comcet.tp7.MainCompiler</mainClass>
+                  <mainClass>br.com.comcet.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>

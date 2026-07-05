@@ -13,5 +13,5 @@ begin
     n := n - 1;
   end;
 
-  print(fat);
+  writeln(fat);
 end.

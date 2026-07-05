@@ -38,7 +38,7 @@ public class CodeGenerator implements Opcodes {
         // 2. Cria o método public static void main(String[] args)
         mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
         mv.visitCode();
-        
+
         varMap = new HashMap<>();
         nextVarIndex = 1; // Mapeamento da JVM: índice 0 é do argumento args[] do main
 
@@ -65,8 +65,8 @@ public class CodeGenerator implements Opcodes {
     private void visitFunctionDecl(FunctionDecl func) {
         // Resolve a assinatura da função (Ex: assumimos (I)I para Inteiro -> Inteiro)
         StringBuilder sig = new StringBuilder("(");
-        for (VarDecl param : func.parameters) {
-            sig.append("I"); 
+        for (@SuppressWarnings("unused") VarDecl param : func.parameters) {
+            sig.append("I");
         }
         sig.append(")I");
 
@@ -96,7 +96,7 @@ public class CodeGenerator implements Opcodes {
             }
         }
 
-        // Adiciona um retorno padrão para a máquina não quebrar em caso de procedimenos sem returns
+        // Adiciona um retorno padrão para a máquina não quebrar em caso de procedimentos sem returns
         mv.visitInsn(ICONST_0);
         mv.visitInsn(IRETURN);
         mv.visitMaxs(0, 0);
@@ -157,6 +157,33 @@ public class CodeGenerator implements Opcodes {
             mv.visitJumpInsn(GOTO, lStart); // Volta para a verificação inicial
 
             mv.visitLabel(lEnd);
+
+        } else if (cmd instanceof RepeatCommand) {
+            // repeat ... until <cond>
+            // Executa o corpo pelo menos uma vez e repete enquanto a condição for FALSA
+            RepeatCommand repeat = (RepeatCommand) cmd;
+            Label lStart = new Label();
+
+            mv.visitLabel(lStart);
+            visitCommand(repeat.body);        // executa o corpo
+            visitExpression(repeat.condition); // avalia a condição
+            mv.visitJumpInsn(IFEQ, lStart);   // se for 0 (falso), volta ao início
+
+        } else if (cmd instanceof ReadCommand) {
+            // readln(x): lê um inteiro de System.in e salva na variável
+            ReadCommand read = (ReadCommand) cmd;
+            int index = varMap.get(read.identifier.name);
+
+            // new Scanner(System.in)
+            mv.visitTypeInsn(NEW, "java/util/Scanner");
+            mv.visitInsn(DUP);
+            mv.visitFieldInsn(GETSTATIC, "java/lang/System", "in", "Ljava/io/InputStream;");
+            mv.visitMethodInsn(INVOKESPECIAL, "java/util/Scanner", "<init>",
+                    "(Ljava/io/InputStream;)V", false);
+
+            // scanner.nextInt()
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/Scanner", "nextInt", "()I", false);
+            mv.visitVarInsn(ISTORE, index);
         }
     }
 
@@ -169,43 +196,73 @@ public class CodeGenerator implements Opcodes {
                 boolean val = (Boolean) lit.value;
                 mv.visitInsn(val ? ICONST_1 : ICONST_0);
             }
+
         } else if (expr instanceof Identifier) {
             Identifier id = (Identifier) expr;
             int index = varMap.get(id.name);
             mv.visitVarInsn(ILOAD, index); // Carrega a variável na pilha
+
+        } else if (expr instanceof UnaryExpression) {
+            // Suporte ao operador 'not' booleano
+            UnaryExpression unary = (UnaryExpression) expr;
+            visitExpression(unary.expr);
+            if (unary.operator.equalsIgnoreCase("not")) {
+                // Inverte 0 ↔ 1 via XOR com 1
+                mv.visitInsn(ICONST_1);
+                mv.visitInsn(IXOR);
+            }
+
         } else if (expr instanceof BinaryExpression) {
             BinaryExpression bin = (BinaryExpression) expr;
             visitExpression(bin.left);
             visitExpression(bin.right);
 
             switch (bin.operator) {
-                case "+": mv.visitInsn(IADD); break; // Empilha o resultado
+                // Operadores aritméticos
+                case "+": mv.visitInsn(IADD); break;
                 case "-": mv.visitInsn(ISUB); break;
                 case "*": mv.visitInsn(IMUL); break;
                 case "/": mv.visitInsn(IDIV); break;
-                case ">": 
+
+                // Operadores lógicos bit-a-bit (operandos são 0/1)
+                case "and": mv.visitInsn(IAND); break;
+                case "or":  mv.visitInsn(IOR);  break;
+
+                // Operadores relacionais — produzem 0 (falso) ou 1 (verdadeiro) na pilha
+                case ">":
                 case "<":
-                case "==":
-                case "!=":
+                case "=":   // Pascal usa '=' para igualdade
+                case "<>":  // Pascal usa '<>' para diferente
                 case ">=":
                 case "<=":
+                case "==":  // mantido para compatibilidade retroativa
+                case "!=": {
                     Label lTrue = new Label();
-                    Label lEnd = new Label();
-                    int opcode = IF_ICMPEQ;
-                    if (bin.operator.equals(">")) opcode = IF_ICMPGT;
-                    else if (bin.operator.equals("<")) opcode = IF_ICMPLT;
-                    else if (bin.operator.equals("!=")) opcode = IF_ICMPNE;
-                    else if (bin.operator.equals(">=")) opcode = IF_ICMPGE;
-                    else if (bin.operator.equals("<=")) opcode = IF_ICMPLE;
+                    Label lEnd  = new Label();
+
+                    int opcode;
+                    switch (bin.operator) {
+                        case ">":  opcode = IF_ICMPGT; break;
+                        case "<":  opcode = IF_ICMPLT; break;
+                        case "=":
+                        case "==": opcode = IF_ICMPEQ; break;
+                        case "<>":
+                        case "!=": opcode = IF_ICMPNE; break;
+                        case ">=": opcode = IF_ICMPGE; break;
+                        case "<=": opcode = IF_ICMPLE; break;
+                        default:   opcode = IF_ICMPEQ; break;
+                    }
 
                     mv.visitJumpInsn(opcode, lTrue);
-                    mv.visitInsn(ICONST_0); // Pilha: Falso
+                    mv.visitInsn(ICONST_0);      // Falso
                     mv.visitJumpInsn(GOTO, lEnd);
                     mv.visitLabel(lTrue);
-                    mv.visitInsn(ICONST_1); // Pilha: Verdadeiro
+                    mv.visitInsn(ICONST_1);      // Verdadeiro
                     mv.visitLabel(lEnd);
                     break;
+                }
             }
+
         } else if (expr instanceof FunctionCall) {
             FunctionCall call = (FunctionCall) expr;
             for (Expression arg : call.arguments) {
@@ -213,7 +270,7 @@ public class CodeGenerator implements Opcodes {
             }
             StringBuilder sig = new StringBuilder("(");
             for (int i = 0; i < call.arguments.size(); i++) {
-                sig.append("I"); 
+                sig.append("I");
             }
             sig.append(")I");
             mv.visitMethodInsn(INVOKESTATIC, className, call.functionName, sig.toString(), false);

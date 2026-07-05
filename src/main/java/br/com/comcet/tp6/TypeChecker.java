@@ -35,10 +35,16 @@ public class TypeChecker {
             visitIf((IfCommand) node);
         } else if (node instanceof WhileCommand) {
             visitWhile((WhileCommand) node);
+        } else if (node instanceof RepeatCommand) {
+            visitRepeat((RepeatCommand) node);
         } else if (node instanceof PrintCommand) {
             visitPrint((PrintCommand) node);
+        } else if (node instanceof ReadCommand) {
+            visitRead((ReadCommand) node);
         } else if (node instanceof BinaryExpression) {
             visitBinary((BinaryExpression) node);
+        } else if (node instanceof UnaryExpression) {
+            visitUnary((UnaryExpression) node);
         } else if (node instanceof Literal) {
             visitLiteral((Literal) node);
         } else if (node instanceof Identifier) {
@@ -53,7 +59,7 @@ public class TypeChecker {
     private void visitProgram(Program node) {
         table.enterScope();
 
-        // 1. Registar as funções no escopo global primeiro
+        // 1. Registrar as funções no escopo global primeiro
         for (FunctionDecl func : node.functions) {
             Symbol sym = new Symbol(func.name, func.returnType);
             sym.isFunction = true;
@@ -155,8 +161,23 @@ public class TypeChecker {
         check(node.body);
     }
 
+    private void visitRepeat(RepeatCommand node) {
+        check(node.body);
+        check(node.condition);
+
+        if (node.condition != null && node.condition.evalType != Type.BOOLEAN && node.condition.evalType != Type.UNKNOWN) {
+            errors.add("Erro Semântico na linha " + node.line + ": Condição do 'repeat...until' deve ser booleana.");
+        }
+    }
+
     private void visitPrint(PrintCommand node) {
         check(node.expression);
+    }
+
+    private void visitRead(ReadCommand node) {
+        if (node.identifier != null) {
+            check(node.identifier);
+        }
     }
 
     private void visitBinary(BinaryExpression node) {
@@ -175,14 +196,40 @@ public class TypeChecker {
                 node.evalType = Type.UNKNOWN;
             }
         }
-        // Operadores Relacionais
-        else if (op.equals("==") || op.equals("!=") || op.equals(">") || op.equals("<") || op.equals(">=")
+        // Operadores Relacionais (Mini-Pascal utiliza '=' e '<>')
+        else if (op.equals("=") || op.equals("<>") || op.equals("==") || op.equals("!=") || op.equals(">") || op.equals("<") || op.equals(">=")
                 || op.equals("<=")) {
             if (node.left.evalType != Type.UNKNOWN && node.right.evalType != Type.UNKNOWN) {
                 node.evalType = Type.BOOLEAN; // Relações sempre retornam booleano
             } else {
                 node.evalType = Type.UNKNOWN;
             }
+        }
+        // Operadores Lógicos binários ('and', 'or')
+        else if (op.equalsIgnoreCase("and") || op.equalsIgnoreCase("or")) {
+            if (node.left.evalType == Type.BOOLEAN && node.right.evalType == Type.BOOLEAN) {
+                node.evalType = Type.BOOLEAN;
+            } else {
+                errors.add("Erro Semântico na linha " + node.line + ": Operação lógica '" + op + "' exige operandos booleanos.");
+                node.evalType = Type.UNKNOWN;
+            }
+        }
+    }
+
+    private void visitUnary(UnaryExpression node) {
+        // Assume que a propriedade na classe UnaryExpression é 'expr' ou 'expression'
+        // Se no seu projeto se chamar 'expression', ajuste a linha abaixo:
+        check(node.expr); 
+
+        if (node.operator.equalsIgnoreCase("not")) {
+            if (node.expr.evalType == Type.BOOLEAN) {
+                node.evalType = Type.BOOLEAN;
+            } else {
+                errors.add("Erro Semântico na linha " + node.line + ": Operador 'not' exige uma expressão booleana.");
+                node.evalType = Type.UNKNOWN;
+            }
+        } else {
+            node.evalType = Type.UNKNOWN;
         }
     }
 

@@ -24,7 +24,7 @@ public class TypeCheckerTest {
     // 1. Atribuição inválida (int := string)
     @Test
     void falhaAoAtribuirStringParaInt() {
-        String codigo = "program p; var x: integer; begin x := \"ola\"; end.";
+        String codigo = "program p; var x: integer; begin x := 'ola'; end.";
         AstNode ast = parse(codigo);
 
         TypeChecker tc = new TypeChecker();
@@ -50,7 +50,7 @@ public class TypeCheckerTest {
     // 3. Condição de if numérica (if 10 then ...)
     @Test
     void falhaAoUsarInteiroComoCondicaoIf() {
-        String codigo = "program p; begin if 10 then print 1; end.";
+        String codigo = "program p; begin if 10 then writeln(1); end.";
         AstNode ast = parse(codigo);
 
         TypeChecker tc = new TypeChecker();
@@ -66,14 +66,14 @@ public class TypeCheckerTest {
         String codigo = 
                 "program p; " +
                 "function soma(a: integer, b: integer): integer; begin end; " +
-                "begin print soma(10, \"erro\"); end.";
+                "begin writeln(soma(10, 'erro')); end.";
         AstNode ast = parse(codigo);
 
         TypeChecker tc = new TypeChecker();
         tc.check(ast);
 
         assertTrue(tc.hasErrors());
-        // O TypeChecker deve apontar que o segundo argumento ("erro" - string) 
+        // O TypeChecker deve apontar que o segundo argumento ('erro' - string) 
         // não bate com o parâmetro 'b' (integer).
     }
 
@@ -92,7 +92,7 @@ public class TypeCheckerTest {
                 "       fat := fat * n; " +
                 "       n := n - 1; " +
                 "   end; " +
-                "   print fat; " +
+                "   writeln(fat); " +
                 "end.";
         
         AstNode ast = parse(codigo);
