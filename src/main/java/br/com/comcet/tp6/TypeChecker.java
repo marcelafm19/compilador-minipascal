@@ -64,7 +64,7 @@ public class TypeChecker {
             Symbol sym = new Symbol(func.name, func.returnType);
             sym.isFunction = true;
             for (VarDecl param : func.parameters) {
-                sym.paramTypes.add(param.type); // Guarda as assinaturas
+                sym.paramTypes.add(param.type); 
             }
             table.add(func.name, sym);
         }
@@ -86,7 +86,7 @@ public class TypeChecker {
     }
 
     private void visitFunctionDecl(FunctionDecl node) {
-        table.enterScope(); // Novo escopo (local da função)
+        table.enterScope(); 
 
         // Adiciona os parâmetros como variáveis utilizáveis dentro da função
         for (VarDecl param : node.parameters) {
@@ -101,7 +101,7 @@ public class TypeChecker {
             check(node.body);
         }
 
-        table.exitScope(); // Fim do escopo da função
+        table.exitScope(); 
     }
 
     private void visitVarDeclList(VarDeclList node) {
@@ -200,7 +200,7 @@ public class TypeChecker {
         else if (op.equals("=") || op.equals("<>") || op.equals("==") || op.equals("!=") || op.equals(">") || op.equals("<") || op.equals(">=")
                 || op.equals("<=")) {
             if (node.left.evalType != Type.UNKNOWN && node.right.evalType != Type.UNKNOWN) {
-                node.evalType = Type.BOOLEAN; // Relações sempre retornam booleano
+                node.evalType = Type.BOOLEAN; 
             } else {
                 node.evalType = Type.UNKNOWN;
             }
@@ -217,8 +217,6 @@ public class TypeChecker {
     }
 
     private void visitUnary(UnaryExpression node) {
-        // Assume que a propriedade na classe UnaryExpression é 'expr' ou 'expression'
-        // Se no seu projeto se chamar 'expression', ajuste a linha abaixo:
         check(node.expr); 
 
         if (node.operator.equalsIgnoreCase("not")) {

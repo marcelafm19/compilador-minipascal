@@ -13,7 +13,6 @@ public class Scanner implements IScanner {
     private int line;
     private int column;
 
-    // Todas as palavras reservadas do MiniPascal mapeadas para KEYWORD
     private static final Map<String, TokenType> keywords = new HashMap<>();
     static {
         keywords.put("program",   TokenType.KEYWORD);
@@ -96,7 +95,7 @@ public class Scanner implements IScanner {
                 while (!(peek() == '*' && peekNext() == ')') && peek() != '\0') {
                     advance();
                 }
-                if (peek() == '*') { advance(); advance(); } // consome *)
+                if (peek() == '*') { advance(); advance(); } 
 
             } else {
                 break;
@@ -118,7 +117,7 @@ public class Scanner implements IScanner {
 
         char c = peek();
 
-        // ── Identificador ou palavra reservada ──────────────────────────
+        // Identificador ou palavra reservada 
         if (Character.isLetter(c)) {
             StringBuilder sb = new StringBuilder();
             while (Character.isLetterOrDigit(peek()) || peek() == '_') {
@@ -129,23 +128,23 @@ public class Scanner implements IScanner {
             return new Token(type, text, startLine, startCol);
         }
 
-        // ── Número inteiro ───────────────────────────────────────────────
+        // Número inteiro 
         if (Character.isDigit(c)) {
             StringBuilder sb = new StringBuilder();
             while (Character.isDigit(peek())) sb.append(advance());
             return new Token(TokenType.NUMBER, sb.toString(), startLine, startCol);
         }
 
-        // ── String literal com aspas simples '...' ───────────────────────
+        // String literal com aspas simples '...' 
         if (c == '\'') {
-            advance(); // consome '
+            advance(); 
             StringBuilder sb = new StringBuilder();
             while (peek() != '\'' && peek() != '\0') sb.append(advance());
-            if (peek() == '\'') advance(); // consome '
+            if (peek() == '\'') advance(); 
             return new Token(TokenType.LITERAL_STR, sb.toString(), startLine, startCol);
         }
 
-        // ── Operadores e delimitadores ────────────────────────────────────
+        // Operadores e delimitadores 
         c = advance();
         switch (c) {
             // Operadores aritméticos

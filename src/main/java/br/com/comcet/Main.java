@@ -26,19 +26,31 @@ import java.nio.file.Path;
  * Ponto de entrada unificado do compilador MiniPascal.
  *
  * Uso:
- *   java -jar target/comcet-1.0-SNAPSHOT.jar --stage <N> <arquivo.pas>
+ * java -jar target/comcet-1.0-SNAPSHOT.jar --stage <N> <arquivo.pas>
  *
- *   --stage 2  → Analisador Léxico   : imprime tokens  [TIPO, "lexema"]
- *   --stage 3  → Parser Manual       : imprime a AST
- *   --stage 4  → Parser ANTLR4       : imprime a AST via ANTLR
- *   --stage 5  → Análise Semântica   : checa escopos e variáveis
- *   --stage 6  → Verificação de Tipos: checa tipos das expressões
- *   --stage 7  → Geração de Código   : produz o arquivo .class
+ * --stage 2 → Analisador Léxico : imprime tokens [TIPO, "lexema"]
+ * --stage 3 → Parser Manual : imprime a AST
+ * --stage 4 → Parser ANTLR4 : imprime a AST via ANTLR
+ * --stage 5 → Análise Semântica : checa escopos e variáveis
+ * --stage 6 → Verificação de Tipos: checa tipos das expressões
+ * --stage 7 → Geração de Código : produz o arquivo .class
  */
 public class Main {
 
     public static void main(String[] args) {
-        // ── Validação dos argumentos ──────────────────────────────────────
+
+        // Compatibilidade: aceita só o .pas sem --stage (assume stage 7)
+        if (args.length == 1 && args[0].endsWith(".pas")) {
+            try {
+                runStage7(args[0]);
+            } catch (Exception e) {
+                System.err.println("Erro: " + e.getMessage());
+                System.exit(1);
+            }
+            return;
+        }
+        
+        // Validação dos argumentos
         if (args.length < 3 || !args[0].equals("--stage")) {
             printUsage();
             System.exit(1);
@@ -60,15 +72,15 @@ public class Main {
             System.exit(1);
         }
 
-        // ── Roteamento por estágio ────────────────────────────────────────
+        // Roteamento por estágio
         try {
             switch (stage) {
-                case 2  -> runStage2(filePath);
-                case 3  -> runStage3(filePath);
-                case 4  -> runStage4(filePath);
-                case 5  -> runStage5(filePath);
-                case 6  -> runStage6(filePath);
-                case 7  -> runStage7(filePath);
+                case 2 -> runStage2(filePath);
+                case 3 -> runStage3(filePath);
+                case 4 -> runStage4(filePath);
+                case 5 -> runStage5(filePath);
+                case 6 -> runStage6(filePath);
+                case 7 -> runStage7(filePath);
                 default -> {
                     System.err.println("Erro: estágio " + stage + " não reconhecido. Use 2 a 7.");
                     System.exit(1);
@@ -80,7 +92,7 @@ public class Main {
         }
     }
 
-    // ── Estágio 2: Analisador Léxico ──────────────────────────────────────
+    // Estágio 2: Analisador Léxico
     // Saída: [TIPO, "lexema"] por linha, até EOF
     private static void runStage2(String filePath) throws Exception {
         String source = Files.readString(Path.of(filePath));
@@ -92,12 +104,12 @@ public class Main {
         } while (token.type() != TokenType.EOF);
     }
 
-    // ── Estágio 3: Parser Manual ──────────────────────────────────────────
+    // Estágio 3: Parser Manual
     // Saída: árvore AST em texto
     private static void runStage3(String filePath) throws Exception {
         String source = Files.readString(Path.of(filePath));
         Scanner scanner = new Scanner(source);
-        Parser parser   = new Parser(scanner);
+        Parser parser = new Parser(scanner);
 
         Program ast = parser.parseProgram();
 
@@ -105,22 +117,22 @@ public class Main {
         System.out.println(ast.printTree());
     }
 
-    // ── Estágio 4: Parser ANTLR4 ─────────────────────────────────────────
+    // Estágio 4: Parser ANTLR4
     // Saída: árvore AST em texto (construída via MyVisitor)
     private static void runStage4(String filePath) throws Exception {
         CharStream input = CharStreams.fromPath(Path.of(filePath));
-        MiniPascalLexer lexer   = new MiniPascalLexer(input);
+        MiniPascalLexer lexer = new MiniPascalLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        MiniPascalParser parser  = new MiniPascalParser(tokens);
+        MiniPascalParser parser = new MiniPascalParser(tokens);
 
         ParseTree tree = parser.program();
-        AstNode ast    = new MyVisitor().visit(tree);
+        AstNode ast = new MyVisitor().visit(tree);
 
         AstNode.isEtapa3 = true;
         System.out.println(ast.printTree());
     }
 
-    // ── Estágio 5: Análise Semântica ─────────────────────────────────────
+    // Estágio 5: Análise Semântica
     // Saída: "OK" ou lista de erros semânticos
     private static void runStage5(String filePath) throws Exception {
         Program ast = buildAst(filePath);
@@ -136,7 +148,7 @@ public class Main {
         }
     }
 
-    // ── Estágio 6: Verificação de Tipos ──────────────────────────────────
+    // Estágio 6: Verificação de Tipos
     // Saída: "OK" ou lista de erros de tipo
     private static void runStage6(String filePath) throws Exception {
         Program ast = buildAst(filePath);
@@ -149,19 +161,21 @@ public class Main {
 
         boolean hasErrors = semantic.hasErrors() || typeChecker.hasErrors();
         if (hasErrors) {
-            if (semantic.hasErrors())    semantic.getErrors().forEach(System.err::println);
-            if (typeChecker.hasErrors()) typeChecker.getErrors().forEach(System.err::println);
+            if (semantic.hasErrors())
+                semantic.getErrors().forEach(System.err::println);
+            if (typeChecker.hasErrors())
+                typeChecker.getErrors().forEach(System.err::println);
             System.exit(1);
         } else {
             System.out.println("OK");
         }
     }
 
-    // ── Estágio 7: Geração de Código ─────────────────────────────────────
+    // Estágio 7: Geração de Código
     // Saída: arquivo .class gerado no diretório atual
     private static void runStage7(String filePath) throws Exception {
-        Program ast       = buildAst(filePath);
-        String className  = Path.of(filePath).getFileName().toString().replace(".pas", "");
+        Program ast = buildAst(filePath);
+        String className = Path.of(filePath).getFileName().toString().replace(".pas", "");
 
         SemanticAnalyzer semantic = new SemanticAnalyzer();
         semantic.analyze(ast);
@@ -171,8 +185,10 @@ public class Main {
 
         if (semantic.hasErrors() || typeChecker.hasErrors()) {
             System.err.println("Compilação abortada: erros semânticos encontrados.");
-            if (semantic.hasErrors())    semantic.getErrors().forEach(System.err::println);
-            if (typeChecker.hasErrors()) typeChecker.getErrors().forEach(System.err::println);
+            if (semantic.hasErrors())
+                semantic.getErrors().forEach(System.err::println);
+            if (typeChecker.hasErrors())
+                typeChecker.getErrors().forEach(System.err::println);
             System.exit(1);
         }
 
@@ -186,18 +202,18 @@ public class Main {
         System.out.println("Compilado com sucesso: " + className + ".class");
     }
 
-    // ── Utilitário: constrói a AST via ANTLR4 (usado pelos estágios 5-7) ─
+    // Utilitário: constrói a AST via ANTLR4 (usado pelos estágios 5-7)
     private static Program buildAst(String filePath) throws Exception {
-        CharStream input         = CharStreams.fromPath(Path.of(filePath));
-        MiniPascalLexer lexer    = new MiniPascalLexer(input);
+        CharStream input = CharStreams.fromPath(Path.of(filePath));
+        MiniPascalLexer lexer = new MiniPascalLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        MiniPascalParser parser  = new MiniPascalParser(tokens);
+        MiniPascalParser parser = new MiniPascalParser(tokens);
 
         ParseTree tree = parser.program();
         return (Program) new MyVisitor().visit(tree);
     }
 
-    // ── Ajuda ─────────────────────────────────────────────────────────────
+    // Ajuda
     private static void printUsage() {
         System.out.println("Uso: java -jar comcet-1.0-SNAPSHOT.jar --stage <N> <arquivo.pas>");
         System.out.println();

@@ -18,9 +18,7 @@ public class Parser {
         currentToken = scanner.nextToken();
     }
 
-    // ── Predicados auxiliares ────────────────────────────────────────────
-    // Agora o Scanner retorna categorias amplas (OPERATOR, KEYWORD, DELIMITER)
-    // O Parser distingue pelo texto do token
+    // Predicados auxiliares 
 
     private boolean isOp(String op) {
         return currentToken.type() == TokenType.OPERATOR
@@ -37,7 +35,7 @@ public class Parser {
                 && currentToken.text().equals(d);
     }
 
-    // ── Métodos de match ─────────────────────────────────────────────────
+    // Métodos de match 
 
     private void match(TokenType expected) {
         if (currentToken.type() == expected) {
@@ -69,33 +67,25 @@ public class Parser {
         }
     }
 
-    // ── Parsing do programa completo ─────────────────────────────────────
+    // Parsing do programa completo 
 
-    /**
-     * Faz o parse de um programa Pascal completo:
-     *   program NAME ; [var ...;]* begin ... end .
-     */
     public Program parseProgram() {
         Program program = new Program();
 
-        // program NAME ;
         if (isKeyword("program")) {
-            advance();                    // consome 'program'
-            match(TokenType.IDENTIFIER);  // nome do programa
+            advance();                    
+            match(TokenType.IDENTIFIER);  
             matchDelimiter(";");
         }
 
-        // var NAME : TYPE ; (pode ter várias declarações)
         while (isKeyword("var")) {
-            advance(); // consome 'var'
-            // pula declarações: NAME : TYPE ;
+            advance(); 
             while (!isKeyword("begin") && !isKeyword("function")
                     && !isKeyword("procedure") && currentToken.type() != TokenType.EOF) {
                 advance();
             }
         }
 
-        // begin ... end .
         if (isKeyword("begin")) {
             Command block = parseBlock();
             if (block instanceof BlockCommand bc) {
@@ -106,7 +96,7 @@ public class Parser {
         return program;
     }
 
-    // ── Parsing de comandos ───────────────────────────────────────────────
+    // Parsing de comandos 
 
     public Command parseCommand() {
         try {
@@ -189,7 +179,7 @@ public class Parser {
         int line = currentToken.line();
         int col  = currentToken.column();
 
-        advance(); // consome writeln ou print
+        advance(); 
         Expression expr = parseExpression();
         matchDelimiter(";");
 
@@ -226,8 +216,8 @@ public class Parser {
         return cmd;
     }
 
-    // ── Parsing de expressões (precedência: + - < > = << >> ) ────────────
-
+    // Parsing de expressões (precedência: + - < > = << >> ) 
+    
     public Expression parseExpression() {
         int line = currentToken.line();
         int col  = currentToken.column();

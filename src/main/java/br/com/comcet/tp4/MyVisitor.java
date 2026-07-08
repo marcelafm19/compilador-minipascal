@@ -107,7 +107,7 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
         return block;
     }
 
-    // --- COMANDOS ---
+    // COMANDOS 
 
     @Override
     public AstNode visitAssignment(MiniPascalParser.AssignmentContext ctx) {
@@ -161,7 +161,7 @@ public class MyVisitor extends MiniPascalBaseVisitor<AstNode> {
         return visit(ctx.block());
     }
 
-    // --- EXPRESSÕES ---
+    // EXPRESSÕES 
 
     @Override
     public AstNode visitMultiplicativeExpr(MiniPascalParser.MultiplicativeExprContext ctx) {
